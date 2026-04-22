@@ -124,7 +124,7 @@ Goertler et al. (2017). Ecological patterns of species dominance in Yolo Bypass,
 See `CITATION.cff` for BibTeX and other citation formats, or use:
 
 ```
-Your Name. (2026). inundation: Python package for Yolo Bypass inundation duration [Computer software]. GitHub. https://github.com/ferg-dwr/inundation
+Fernando E. Romero Galvan (2026). inundation: Python package for Yolo Bypass inundation duration [Computer software]. GitHub. https://github.com/ferg-dwr/inundation
 ```
 
 ## References
