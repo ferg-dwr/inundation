@@ -47,10 +47,14 @@ __author__ = "Christopher M. Goertler"
 __email__ = "cmgoertler@ucdavis.edu"
 
 from .cache import clear_cache, show_cache
+from .dayflow import get_dayflow
 from .fremont import get_fre
+from .inundation import calc_inundation
 
 __all__ = [
     "get_fre",
+    "get_dayflow",
+    "calc_inundation",
     "show_cache",
     "clear_cache",
     "__version__",
