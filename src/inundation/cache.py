@@ -11,13 +11,13 @@ import appdirs
 
 def get_cache_dir() -> Path:
     """Get the cache directory for the inundation package.
-s
-    Creates the directory if it doesn't exist.
+    s
+        Creates the directory if it doesn't exist.
 
-    Returns
-    -------
-    Path
-        Path to the inundation cache directory.
+        Returns
+        -------
+        Path
+            Path to the inundation cache directory.
     """
     cache_dir = Path(appdirs.user_cache_dir("inundation"))
     cache_dir.mkdir(parents=True, exist_ok=True)
