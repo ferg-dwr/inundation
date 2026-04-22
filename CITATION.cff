@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+title: "inundation: Python Package for Yolo Bypass Inundation Duration"
+message: "If you use this software, please cite it using the metadata from this file and the original research below."
+type: software
+authors:
+  - family-names: "Goertler"
+    given-names: "Pascale A.L."
+    affiliation: "University of California, Davis"
+    note: "Original R package author"
+  - family-names: "Romero Galvan"
+    given-names: "Fernando E."
+    affiliation: "Department of Water Resources, California"
+    note: "Python translation and maintenance"
+repository-code: "https://github.com/ferg-dwr/inundation"
+repository: "https://github.com/goertler/inundation"
+url: "https://github.com/ferg-dwr/inundation"
+abstract: "Python port of the inundation package for calculating Yolo Bypass inundation duration. Downloads and processes CDEC Fremont Weir stage height and California Dayflow data to compute cumulative inundation days and inundation presence."
+keywords:
+  - "yolo bypass"
+  - "inundation"
+  - "california"
+  - "water"
+  - "hydrology"
+  - "fremont weir"
+  - "sacramento river"
+version: "0.1.0"
+date-released: 2026-04-22
+license: "MIT"
+references:
+  - type: journal-article
+    authors:
+      - family-names: "Goertler"
+        given-names: "Pascale A.L."
+      - family-names: "Sommer"
+        given-names: "Ted R."
+      - family-names: "Satterthwaite"
+        given-names: "William H."
+      - family-names: "Schreier"
+        given-names: "Brian M."
+    title: "Ecological patterns of species dominance in Yolo Bypass, California"
+    journal: "Ecology of Freshwater Fish"
+    year: 2017
+    volume: 26
+    issue: 3
+    pages: "415-426"
+    doi: "10.1111/eff.12372"
+    url: "https://onlinelibrary.wiley.com/doi/10.1111/eff.12372"
