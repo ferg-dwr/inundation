@@ -1,12 +1,12 @@
 # inundation
 
-[![CI](https://github.com/YOUR-USERNAME/inundation/workflows/CI/badge.svg)](https://github.com/YOUR-USERNAME/inundation/actions)
+[![CI](https://github.com/ferg-dwr/inundation/workflows/CI/badge.svg)](https://github.com/ferg-dwr/inundation/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A Python package for calculating Yolo Bypass inundation duration from water flow and stage height data.
 
-> **Note:** This is a Python translation of the original [R package](https://github.com/goertler/inundation) by Goertler et al. Please cite the original research when using this tool.
+> **Note:** This is a Python translation of the original [R package](https://github.com/goertler/inundation) by Clark & Goertler (2022). Please cite both the R package release and the original research when using this tool.
 
 ## Overview
 
@@ -28,13 +28,13 @@ pip install inundation
 ### From GitHub (development)
 
 ```bash
-pip install git+https://github.com/YOUR-USERNAME/inundation.git
+pip install git+https://github.com/ferg-dwr/inundation.git
 ```
 
 ### With development dependencies
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/inundation.git
+git clone https://github.com/ferg-dwr/inundation.git
 cd inundation
 pip install -e ".[dev]"
 ```
@@ -117,12 +117,25 @@ If you use this software, please cite it using the metadata from the `CITATION.c
 ### Cite the Python Package
 
 ```bibtex
-@software{dwr_inundation_2026,
+@software{romero_galvan_2026,
   title = {inundation: Python Package for Yolo Bypass Inundation Duration},
   author = {Romero Galvan, Fernando E. and Goertler, Pascale A.L.},
   year = {2026},
   url = {https://github.com/ferg-dwr/inundation},
   version = {0.1.0}
+}
+```
+
+### Cite the Original R Package
+
+```bibtex
+@software{goertler_2022,
+  title = {inundation: Calculate number of inundation days},
+  author = {Goertler, Pascale A.L.},
+  year = {2022},
+  publisher = {Zenodo},
+  doi = {10.5281/zenodo.6450272},
+  url = {https://zenodo.org/records/6450272}
 }
 ```
 
@@ -134,7 +147,8 @@ Goertler, P. A. L., Sommer, T., Satterthwaite, W. H., & Schreier, B. M. (2017). 
 
 ## References
 
-- Original R package: https://github.com/goertler/inundation
+- Original R package (Zenodo): https://zenodo.org/records/6450272
+- Original R package (GitHub): https://github.com/goertler/inundation
 - California Department of Water Resources (CDEC): https://cdec.water.ca.gov/
 - California Natural Resources Agency (Dayflow): https://data.cnra.ca.gov/dataset/dayflow
 
@@ -143,7 +157,7 @@ Goertler, P. A. L., Sommer, T., Satterthwaite, W. H., & Schreier, B. M. (2017). 
 ### Setting up development environment
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/inundation.git
+git clone https://github.com/ferg-dwr/inundation.git
 cd inundation
 python -m venv venv
 source venv/bin/activate  # or `venv\Scripts\activate` on Windows
@@ -195,4 +209,4 @@ The original R package is also MIT licensed and was created by Christopher M. Go
 
 ## Questions or Issues?
 
-Please open an issue on [GitHub](https://github.com/YOUR-USERNAME/inundation/issues) or refer to the [original R package documentation](https://github.com/goertler/inundation).
+Please open an issue on [GitHub](https://github.com/ferg-dwr/inundation/issues) or refer to the [original R package documentation](https://github.com/goertler/inundation).

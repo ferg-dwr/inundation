@@ -27,6 +27,18 @@ version: "0.1.0"
 date-released: 2026-04-27
 license: "MIT"
 references:
+  - type: software
+    authors:
+      - family-names: "Clark"
+        given-names: "Jeanette"
+      - family-names: "Goertler"
+        given-names: "Pascale"
+    title: "inundation"
+    year: 2022
+    publisher: "Zenodo"
+    doi: "10.5281/zenodo.6450272"
+    url: "https://zenodo.org/records/6450272"
+    note: "Original R package"
   - type: journal-article
     authors:
       - family-names: "Goertler"
