@@ -15,21 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests for Yolo flow correction at 4000 cfs
   - Tests for missing-data and imputation behavior
   - Documentation in `tests/fixtures/README.md`
-- `CHANGELOG.md` to track package changes
-- `NOTICE.md` with full attribution per Apache 2.0 requirements
+- `CHANGELOG.md` to track package changes (#4)
+- `NOTICE.md` with full attribution per Apache 2.0 requirements (#2)
+- `.pre-commit-config.yaml` for local development checks (#4)
+  - Trailing whitespace, end-of-file fixes
+  - Ruff linting and formatting
+  - Black code formatting
+  - MyPy type checking
+- Updated README.md with pre-commit hook setup instructions (#4)
 
 ### Changed
 - License changed from MIT to Apache 2.0 (#2)
   - Matches original R package license
   - Copyright assigned to State of California, Department of Water Resources
-- Updated CI workflow to remove auto-fixing in `ruff check`
-- Releases now triggered by version tags (e.g., `v0.1.0`) instead of every push to main
-- Updated GitHub Actions to latest versions:
+- CI workflow no longer auto-fixes code (#4)
+  - Replaced `ruff check . --fix` with `ruff check .`
+  - Developers should run linting locally before committing
+- Releases now triggered by version tags only (#4)
+  - Previously: automatic release on every push to main
+  - Now: manual, intentional releases via `git tag vX.Y.Z`
+- Updated GitHub Actions to latest versions (#4):
   - `actions/checkout@v4`
   - `actions/setup-python@v5`
   - `actions/cache@v4`
   - `codecov/codecov-action@v4`
-- Updated authors and attribution:
+  - `softprops/action-gh-release@v2` (replaces deprecated `actions/create-release@v1`)
+- Updated authors and attribution (#2):
   - Original R package authors: Jeanette Clark and Pascale A.L. Goertler
   - Python translation: Fernando E. Romero Galvan (DWR)
   - Removed incorrect "Christopher M. Goertler" references

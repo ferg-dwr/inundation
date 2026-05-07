@@ -164,21 +164,42 @@ source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 pip install -e ".[dev]"
 ```
 
+### Set up pre-commit hooks (recommended)
+
+Pre-commit hooks automatically run linting and formatting before each commit, catching issues early:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Once installed, hooks run automatically on every `git commit`. To run them manually:
+
+```bash
+pre-commit run --all-files
+```
+
 ### Running tests
 
 ```bash
 pytest                    # Run all tests
 pytest --cov             # Run with coverage report
-pytest -m "not slow"     # Skip slow tests
+pytest -m "not integration"  # Skip integration tests (faster)
 ```
 
 ### Code quality
 
+CI verifies that committed code passes all checks. **Run these locally before committing:**
+
 ```bash
-ruff check .             # Lint code
-black .                  # Format code
-mypy src/inundation      # Type check
+ruff check .              # Lint code (auto-fixes with --fix)
+ruff check . --fix        # Lint and auto-fix issues
+black .                   # Format code
+mypy src/inundation       # Type check
+pytest                    # Run tests
 ```
+
+> **Note:** CI will reject PRs that fail these checks. Pre-commit hooks (above) automatically run most of these for you.
 
 ## Contributing
 
