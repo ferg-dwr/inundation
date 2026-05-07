@@ -43,8 +43,8 @@ Data sources:
 """
 
 __version__ = "0.1.0"
-__author__ = "Christopher M. Goertler"
-__email__ = "cmgoertler@ucdavis.edu"
+__author__ = "Fernando E. Romero Galvan"
+__email__ = "fernando.romero-galvan@water.ca.gov"
 
 from .cache import clear_cache, show_cache
 from .dayflow import get_dayflow

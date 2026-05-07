@@ -3,14 +3,16 @@ title: "inundation: Python Package for Yolo Bypass Inundation Duration"
 message: "If you use this software, please cite it using the metadata from this file and the original research below."
 type: software
 authors:
-  - family-names: "Goertler"
-    given-names: "Pascale A.L."
-    affiliation: "University of California, Davis"
-    note: "Original R package author"
   - family-names: "Romero Galvan"
     given-names: "Fernando E."
     affiliation: "Department of Water Resources, California"
     note: "Python translation and maintenance"
+  - family-names: "Clark"
+    given-names: "Jeanette"
+    note: "Original R package author"
+  - family-names: "Goertler"
+    given-names: "Pascale A.L."
+    note: "Original R package author"
 repository-code: "https://github.com/ferg-dwr/inundation"
 repository: "https://github.com/goertler/inundation"
 url: "https://github.com/ferg-dwr/inundation"
@@ -25,21 +27,21 @@ keywords:
   - "sacramento river"
 version: "0.1.0"
 date-released: 2026-04-27
-license: "MIT"
+license: "Apache-2.0"
 references:
   - type: software
     authors:
       - family-names: "Clark"
         given-names: "Jeanette"
       - family-names: "Goertler"
-        given-names: "Pascale"
+        given-names: "Pascale A.L."
     title: "inundation"
     year: 2022
     publisher: "Zenodo"
     doi: "10.5281/zenodo.6450272"
     url: "https://zenodo.org/records/6450272"
-    note: "Original R package"
-  - type: journal-article
+    notes: "Original R package"
+  - type: article
     authors:
       - family-names: "Goertler"
         given-names: "Pascale A.L."
@@ -54,6 +56,7 @@ references:
     year: 2017
     volume: 26
     issue: 3
-    pages: "415-426"
+    start: 415
+    end: 426
     doi: "10.1111/eff.12372"
     url: "https://onlinelibrary.wiley.com/doi/10.1111/eff.12372"

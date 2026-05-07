@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/ferg-dwr/inundation/workflows/CI/badge.svg)](https://github.com/ferg-dwr/inundation/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 A Python package for calculating Yolo Bypass inundation duration from water flow and stage height data.
 
-> **Note:** This is a Python translation of the original [R package](https://github.com/goertler/inundation) by Clark & Goertler (2022). Please cite both the R package release and the original research when using this tool.
+> **Note:** This is a Python translation of the original [R package](https://github.com/goertler/inundation) by Clark & Goertler (2022). Please cite both the R package release and the original research when using this tool. See [NOTICE.md](NOTICE.md) for full attribution.
 
 ## Overview
 
@@ -112,14 +112,14 @@ These thresholds correspond to when water spills over the Fremont Weir into the 
 
 ## Citation
 
-If you use this software, please cite it using the metadata from the `CITATION.cff` file.
+If you use this software, please cite it using the metadata from the [`CITATION.cff`](CITATION.cff) file. See [NOTICE.md](NOTICE.md) for full attribution.
 
 ### Cite the Python Package
 
 ```bibtex
 @software{romero_galvan_2026,
   title = {inundation: Python Package for Yolo Bypass Inundation Duration},
-  author = {Romero Galvan, Fernando E. and Goertler, Pascale A.L.},
+  author = {Romero Galvan, Fernando E. and Clark, Jeanette and Goertler, Pascale A.L.},
   year = {2026},
   url = {https://github.com/ferg-dwr/inundation},
   version = {0.1.0}
@@ -129,9 +129,9 @@ If you use this software, please cite it using the metadata from the `CITATION.c
 ### Cite the Original R Package
 
 ```bibtex
-@software{goertler_2022,
-  title = {inundation: Calculate number of inundation days},
-  author = {Goertler, Pascale A.L.},
+@software{clark_goertler_2022,
+  title = {inundation},
+  author = {Clark, Jeanette and Goertler, Pascale A.L.},
   year = {2022},
   publisher = {Zenodo},
   doi = {10.5281/zenodo.6450272},
@@ -194,15 +194,16 @@ Contributions are welcome! Please:
 
 ## License
 
-This project is licensed under the MIT License—see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License, Version 2.0—see the [LICENSE.md](LICENSE.md) file for details. See [NOTICE.md](NOTICE.md) for attribution and acknowledgments.
 
-The original R package is also MIT licensed and was created by Christopher M. Goertler and collaborators at UC Davis.
+The original R package is also licensed under Apache License 2.0 and was created by Jeanette Clark and Pascale A.L. Goertler.
 
 ## Acknowledgments
 
-- **Original R package:** Pascale A.L. Goertler (UC Davis)
+- **Original R package:** Jeanette Clark and Pascale A.L. Goertler ([Zenodo](https://zenodo.org/records/6450272))
 - **Python translation:** Fernando E. Romero Galvan (California Department of Water Resources)
-- **Data sources:** 
+- **AI assistance:** This Python translation was developed with assistance from AI code generation (Anthropic Claude). See [NOTICE.md](NOTICE.md) for details.
+- **Data sources:**
   - California Department of Water Resources (CDEC Fremont Weir)
   - California Natural Resources Agency (Dayflow)
 - **Scientific foundation:** [Goertler et al. (2017)](https://onlinelibrary.wiley.com/doi/10.1111/eff.12372)

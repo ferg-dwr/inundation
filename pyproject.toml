@@ -8,18 +8,20 @@ version = "0.1.0"
 description = "Python package for calculating Yolo Bypass inundation duration from water flow and stage height data"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 authors = [
-    {name = "Christopher M. Goertler", email = "cmgoertler@ucdavis.edu"},
+    {name = "Jeanette Clark", note = "Original R package author"},
+    {name = "Pascale A.L. Goertler", note = "Original R package author"},
+    {name = "Fernando E. Romero Galvan", email = "fernando.romero-galvan@water.ca.gov", note = "Python translation and maintenance"},
 ]
 maintainers = [
-    {name = "Your Name", email = "your.email@example.com"},
+    {name = "Fernando E. Romero Galvan", email = "fernando.romero-galvan@water.ca.gov", affiliation = "California Department of Water Resources"},
 ]
 keywords = ["yolo bypass", "inundation", "california", "water", "hydrology", "fremont weir"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -51,10 +53,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/YOUR-USERNAME/inundation"
-Repository = "https://github.com/YOUR-USERNAME/inundation.git"
+Homepage = "https://github.com/ferg-dwr/inundation"
+Repository = "https://github.com/ferg-dwr/inundation.git"
 Documentation = "https://python-inundation.readthedocs.io"
-"Bug Tracker" = "https://github.com/YOUR-USERNAME/inundation/issues"
+"Bug Tracker" = "https://github.com/ferg-dwr/inundation/issues"
 "Original R Package" = "https://github.com/goertler/inundation"
 
 [tool.setuptools]
