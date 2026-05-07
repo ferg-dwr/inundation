@@ -188,25 +188,25 @@ class TestThresholdBehavior:
                 result = calc_inundation()
 
         # First two days clearly below threshold
-        assert result.iloc[0]["inundation"] == 0, (
-            f"Day 1 (33.0 ft) should not be inundated, got {result.iloc[0]['inundation']}"
-        )
-        assert result.iloc[1]["inundation"] == 0, (
-            f"Day 2 (33.0 ft) should not be inundated, got {result.iloc[1]['inundation']}"
-        )
+        assert (
+            result.iloc[0]["inundation"] == 0
+        ), f"Day 1 (33.0 ft) should not be inundated, got {result.iloc[0]['inundation']}"
+        assert (
+            result.iloc[1]["inundation"] == 0
+        ), f"Day 2 (33.0 ft) should not be inundated, got {result.iloc[1]['inundation']}"
         # After smoothing settles, days should be inundated
         # The last few days (after smoothing has caught up) should definitely be inundated
-        assert result.iloc[-1]["inundation"] == 1, (
-            f"Last day (35.0 ft, smoothed) should be inundated, got {result.iloc[-1]['inundation']}"
-        )
-        assert result.iloc[-2]["inundation"] == 1, (
-            "Second-to-last day (35.0 ft, smoothed) should be inundated"
-        )
+        assert (
+            result.iloc[-1]["inundation"] == 1
+        ), f"Last day (35.0 ft, smoothed) should be inundated, got {result.iloc[-1]['inundation']}"
+        assert (
+            result.iloc[-2]["inundation"] == 1
+        ), "Second-to-last day (35.0 ft, smoothed) should be inundated"
         # Verify at least some days are inundated when above threshold
         days_above = result.iloc[2:]
-        assert days_above["inundation"].sum() > 0, (
-            "At least some days at 35.0 ft should be inundated"
-        )
+        assert (
+            days_above["inundation"].sum() > 0
+        ), "At least some days at 35.0 ft should be inundated"
 
     def test_threshold_exactly_at_boundary_post_2016(self) -> None:
         """
@@ -241,17 +241,17 @@ class TestThresholdBehavior:
         assert result.iloc[0]["inundation"] == 0, "Day 1 (31.5 ft) should not be inundated"
         assert result.iloc[1]["inundation"] == 0, "Day 2 (31.5 ft) should not be inundated"
         # After smoothing settles, days should be inundated
-        assert result.iloc[-1]["inundation"] == 1, (
-            "Last day (33.0 ft, smoothed) should be inundated"
-        )
-        assert result.iloc[-2]["inundation"] == 1, (
-            "Second-to-last day (33.0 ft, smoothed) should be inundated"
-        )
+        assert (
+            result.iloc[-1]["inundation"] == 1
+        ), "Last day (33.0 ft, smoothed) should be inundated"
+        assert (
+            result.iloc[-2]["inundation"] == 1
+        ), "Second-to-last day (33.0 ft, smoothed) should be inundated"
         # Verify at least some days are inundated when above threshold
         days_above = result.iloc[2:]
-        assert days_above["inundation"].sum() > 0, (
-            "At least some days at 33.0 ft should be inundated"
-        )
+        assert (
+            days_above["inundation"].sum() > 0
+        ), "At least some days at 33.0 ft should be inundated"
 
     def test_pre_2016_height_below_post_threshold_not_inundated(self) -> None:
         """
@@ -336,9 +336,9 @@ class TestCounterBehavior:
 
         expected_counter = [1, 2, 3, 4, 5]
         actual_counter = result["inund_days"].tolist()
-        assert actual_counter == expected_counter, (
-            f"Counter should be {expected_counter}, got {actual_counter}"
-        )
+        assert (
+            actual_counter == expected_counter
+        ), f"Counter should be {expected_counter}, got {actual_counter}"
 
     def test_counter_resets_when_water_recedes(self) -> None:
         """
@@ -403,9 +403,9 @@ class TestYoloFlowCorrection:
         assert result.iloc[0]["inund_days"] == 1, "Day 1 should start at 1"
         assert result.iloc[1]["inund_days"] == 2, "Day 2 should be 2"
         # Days 3 and 4 should continue due to Yolo correction
-        assert result.iloc[2]["inund_days"] >= 3, (
-            "Day 3 should continue due to Yolo correction (>=4000 cfs)"
-        )
+        assert (
+            result.iloc[2]["inund_days"] >= 3
+        ), "Day 3 should continue due to Yolo correction (>=4000 cfs)"
         assert result.iloc[3]["inund_days"] >= 4, "Day 4 should continue due to Yolo correction"
 
     def test_yolo_correction_doesnt_trigger_below_4000(self) -> None:
@@ -466,9 +466,9 @@ class TestBinaryIndicatorConsistency:
 
         # Binary indicator must match counter
         expected_binary = (result["inund_days"] > 0).astype(int)
-        assert (result["inundation"] == expected_binary).all(), (
-            "Binary indicator must match counter for all rows"
-        )
+        assert (
+            result["inundation"] == expected_binary
+        ).all(), "Binary indicator must match counter for all rows"
 
     def test_binary_indicator_is_only_zero_or_one(self) -> None:
         """
@@ -492,9 +492,9 @@ class TestBinaryIndicatorConsistency:
                 result = calc_inundation()
 
         unique_values = set(result["inundation"].unique())
-        assert unique_values.issubset({0, 1}), (
-            f"Inundation indicator should only contain 0 or 1, got {unique_values}"
-        )
+        assert unique_values.issubset(
+            {0, 1}
+        ), f"Inundation indicator should only contain 0 or 1, got {unique_values}"
 
 
 class TestStageHeightPreservation:
@@ -585,9 +585,9 @@ class TestMissingDataAndImputation:
                 result = calc_inundation()
 
         # No NaN values should remain after imputation
-        assert not result["height_sac"].isna().any(), (
-            "All height_sac values should be imputed (no NaN remaining)"
-        )
+        assert (
+            not result["height_sac"].isna().any()
+        ), "All height_sac values should be imputed (no NaN remaining)"
 
     def test_imputed_heights_within_reasonable_range(self) -> None:
         """
@@ -635,9 +635,9 @@ class TestMissingDataAndImputation:
 
         # All imputed heights should be reasonable (close to 35.0)
         for i, height in enumerate(result["height_sac"]):
-            assert abs(height - 35.0) < 0.5, (
-                f"Day {i + 1} imputed height {height:.2f} should be near 35.0 ft"
-            )
+            assert (
+                abs(height - 35.0) < 0.5
+            ), f"Day {i + 1} imputed height {height:.2f} should be near 35.0 ft"
 
     def test_inundation_calculation_with_missing_data(self) -> None:
         """
@@ -684,9 +684,9 @@ class TestMissingDataAndImputation:
                 result = calc_inundation()
 
         # All days should be inundated (after imputation, heights ~ 35.0 > 33.5)
-        assert (result["inundation"] == 1).all(), (
-            "All days should be inundated after imputation with valid surrounding data"
-        )
+        assert (
+            result["inundation"] == 1
+        ).all(), "All days should be inundated after imputation with valid surrounding data"
 
     def test_dayflow_missing_values_handled(self) -> None:
         """
