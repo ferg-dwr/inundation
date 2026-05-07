@@ -68,16 +68,42 @@ dayflow = get_dayflow()
 
 ### Manage cache
 
+The package caches downloaded data locally for fast repeated access. Three flags control caching behavior:
+
+```python
+from inundation import get_fre, get_dayflow
+
+# Default - reads from cache if available, writes after download
+fre = get_fre()
+
+# Force fresh data, but still update cache for next call
+fre = get_fre(refresh=True)
+
+# Don't touch the cache at all (no read, no write)
+fre = get_fre(use_cache=False)
+```
+
+**Cache management functions:**
+
 ```python
 from inundation.cache import show_cache, clear_cache
 
-# View cached files
-files = show_cache()
-print(f"Cached files: {files}")
+# View cached files with rich metadata
+entries = show_cache()
+for entry in entries:
+    print(f"{entry['filename']}: {entry['row_count']} rows, downloaded {entry['downloaded_at']}")
 
-# Clear cache if needed
+# Clear all caches
 clear_cache()
+
+# Clear only Fremont Weir caches
+clear_cache(dataset="fre")
+
+# Clear caches older than 7 days
+clear_cache(older_than_days=7)
 ```
+
+**📖 For detailed information about caching behavior, design philosophy, and best practices, see [docs/caching.md](docs/caching.md).**
 
 ## Data Sources
 
@@ -164,21 +190,42 @@ source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 pip install -e ".[dev]"
 ```
 
+### Set up pre-commit hooks (recommended)
+
+Pre-commit hooks automatically run linting and formatting before each commit, catching issues early:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Once installed, hooks run automatically on every `git commit`. To run them manually:
+
+```bash
+pre-commit run --all-files
+```
+
 ### Running tests
 
 ```bash
 pytest                    # Run all tests
 pytest --cov             # Run with coverage report
-pytest -m "not slow"     # Skip slow tests
+pytest -m "not integration"  # Skip integration tests (faster)
 ```
 
 ### Code quality
 
+CI verifies that committed code passes all checks. **Run these locally before committing:**
+
 ```bash
-ruff check .             # Lint code
-black .                  # Format code
-mypy src/inundation      # Type check
+ruff check .              # Lint code (auto-fixes with --fix)
+ruff check . --fix        # Lint and auto-fix issues
+black .                   # Format code
+mypy src/inundation       # Type check
+pytest                    # Run tests
 ```
+
+> **Note:** CI will reject PRs that fail these checks. Pre-commit hooks (above) automatically run most of these for you.
 
 ## Contributing
 
