@@ -122,9 +122,11 @@ class TestSimpleScenarios:
         assert (result["inundation"] == 1).all(), "All days should be inundated"
 
         # Counter should increment: 1, 2, 3
-        assert result["inund_days"].tolist() == [1, 2, 3], (
-            f"Expected [1, 2, 3], got {result['inund_days'].tolist()}"
-        )
+        assert result["inund_days"].tolist() == [
+            1,
+            2,
+            3,
+        ], f"Expected [1, 2, 3], got {result['inund_days'].tolist()}"
 
     def test_simple_below_threshold_pre_2016(self) -> None:
         """
@@ -172,9 +174,7 @@ class TestThresholdBehavior:
             Days 3+ (35.0 ft): some should be inundated
         """
         dates = pd.date_range("2015-01-01", periods=8)
-        fre_data = _create_hourly_fre_data(
-            dates, [33.0, 33.0, 35.0, 35.0, 35.0, 35.0, 35.0, 35.0]
-        )
+        fre_data = _create_hourly_fre_data(dates, [33.0, 33.0, 35.0, 35.0, 35.0, 35.0, 35.0, 35.0])
         dayflow_data = _create_dayflow_data(
             dates,
             sac_flows=[3000.0] * 8,
@@ -200,7 +200,7 @@ class TestThresholdBehavior:
             f"Last day (35.0 ft, smoothed) should be inundated, got {result.iloc[-1]['inundation']}"
         )
         assert result.iloc[-2]["inundation"] == 1, (
-            f"Second-to-last day (35.0 ft, smoothed) should be inundated"
+            "Second-to-last day (35.0 ft, smoothed) should be inundated"
         )
         # Verify at least some days are inundated when above threshold
         days_above = result.iloc[2:]
@@ -224,9 +224,7 @@ class TestThresholdBehavior:
             Last days (33.0 ft, smoothed): inundation=1
         """
         dates = pd.date_range("2017-01-01", periods=8)
-        fre_data = _create_hourly_fre_data(
-            dates, [31.5, 31.5, 33.0, 33.0, 33.0, 33.0, 33.0, 33.0]
-        )
+        fre_data = _create_hourly_fre_data(dates, [31.5, 31.5, 33.0, 33.0, 33.0, 33.0, 33.0, 33.0])
         dayflow_data = _create_dayflow_data(
             dates,
             sac_flows=[3000.0] * 8,
@@ -306,9 +304,10 @@ class TestThresholdBehavior:
 
         # 32.5 ft is above post-2016 threshold of 32.0 ft
         assert (result["inundation"] == 1).all(), "32.5 ft post-2016 should be inundated"
-        assert result["inund_days"].tolist() == [1, 2], (
-            f"Counter should be [1, 2], got {result['inund_days'].tolist()}"
-        )
+        assert result["inund_days"].tolist() == [
+            1,
+            2,
+        ], f"Counter should be [1, 2], got {result['inund_days'].tolist()}"
 
 
 class TestCounterBehavior:
@@ -407,9 +406,7 @@ class TestYoloFlowCorrection:
         assert result.iloc[2]["inund_days"] >= 3, (
             "Day 3 should continue due to Yolo correction (>=4000 cfs)"
         )
-        assert result.iloc[3]["inund_days"] >= 4, (
-            "Day 4 should continue due to Yolo correction"
-        )
+        assert result.iloc[3]["inund_days"] >= 4, "Day 4 should continue due to Yolo correction"
 
     def test_yolo_correction_doesnt_trigger_below_4000(self) -> None:
         """
@@ -526,9 +523,7 @@ class TestStageHeightPreservation:
 
         # All heights should be close to 35.0 (within 0.1 ft tolerance)
         for height in result["height_sac"]:
-            assert abs(height - 35.0) < 0.1, (
-                f"Height {height} should be within 0.1 ft of 35.0"
-            )
+            assert abs(height - 35.0) < 0.1, f"Height {height} should be within 0.1 ft of 35.0"
 
 
 class TestMissingDataAndImputation:
