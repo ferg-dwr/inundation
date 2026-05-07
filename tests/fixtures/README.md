@@ -1,16 +1,36 @@
 # Test Fixtures
 
-This directory contains test fixtures for **scientific correctness tests** in `test_scientific_correctness.py`.
+This directory documents test scenarios for **scientific correctness tests** in `tests/test_scientific_correctness.py`.
 
 ## Purpose
 
-These fixtures provide **known inputs with known expected outputs** to verify that the inundation calculation logic produces correct results. Unlike structural tests that just verify "the function returns a DataFrame," these tests verify **exact expected values** for specific scenarios.
+These tests provide **known inputs with known expected outputs** to verify that the inundation calculation logic produces correct results. Unlike structural tests that just verify "the function returns a DataFrame," these tests verify **exact expected values** for specific scenarios.
+
+## How Test Data is Generated
+
+Test data is created **in-memory** using helper functions in `test_scientific_correctness.py`:
+
+- `_create_hourly_fre_data(dates, heights)` - Creates hourly FRE data
+- `_create_dayflow_data(dates, sac, yolo)` - Creates daily flow data
+
+This approach keeps tests self-contained without requiring external CSV files.
+
+## Important Note on Smoothing
+
+The `calc_inundation()` function applies **exponential weighted mean (ewm) smoothing** to stage height data. This means:
+
+- Values at the boundary of an inundation event may be pulled by neighboring values
+- A single high value among low values may be smoothed below threshold
+- Tests use **clearly above/below threshold values** (not exact boundaries) to avoid smoothing artifacts
 
 ## Test Scenarios
 
-### Scenario 1: `simple_above_threshold/`
-**Input:** 3 consecutive days at 35 ft (well above 33.5 ft threshold)  
-**Period:** 2020-01-01 to 2020-01-03  
+### Scenario 1: Simple Above Threshold (Pre-2016)
+**Test:** `test_simple_above_threshold_pre_2016`
+**Period:** 2015-01-01 to 2015-01-03 (3 days)
+**Heights:** [35.0, 35.0, 35.0] - well above 33.5 ft threshold
+**Yolo flows:** [1000, 1000, 1000]
+
 **Expected:**
 - All 3 days: `inundation = 1`
 - `inund_days = [1, 2, 3]`
@@ -19,9 +39,12 @@ These fixtures provide **known inputs with known expected outputs** to verify th
 
 ---
 
-### Scenario 2: `simple_below_threshold/`
-**Input:** 3 consecutive days at 30 ft (well below 33.5 ft threshold)  
-**Period:** 2020-01-01 to 2020-01-03  
+### Scenario 2: Simple Below Threshold (Pre-2016)
+**Test:** `test_simple_below_threshold_pre_2016`
+**Period:** 2015-01-01 to 2015-01-03 (3 days)
+**Heights:** [30.0, 30.0, 30.0] - well below 33.5 ft threshold
+**Yolo flows:** [500, 500, 500]
+
 **Expected:**
 - All 3 days: `inundation = 0`
 - All 3 days: `inund_days = 0`
@@ -30,124 +53,176 @@ These fixtures provide **known inputs with known expected outputs** to verify th
 
 ---
 
-### Scenario 3: `crossing_threshold_pre_2016/`
-**Input:** 5 days going from below to above threshold (33.5 ft)  
-**Period:** 2016-01-01 to 2016-01-05  
-**Heights:** 33.0, 33.4, 33.5, 34.0, 34.5  
-**Expected:**
-- Day 1: `inundation = 0` (below 33.5)
-- Day 2: `inundation = 0` (still below)
-- Day 3: `inundation = 1` (at threshold, `inund_days = 1`)
-- Day 4: `inundation = 1` (`inund_days = 2`)
-- Day 5: `inundation = 1` (`inund_days = 3`)
+### Scenario 3: Threshold Boundary Pre-2016
+**Test:** `test_threshold_exactly_at_boundary_pre_2016`
+**Period:** 2015-01-01 to 2015-01-08 (8 days)
+**Heights:** [33.0, 33.0, 35.0, 35.0, 35.0, 35.0, 35.0, 35.0]
+**Yolo flows:** [500] * 8
 
-**Why:** Tests pre-2016 threshold of exactly 33.5 ft.
+**Expected:**
+- Days 1-2 (33.0 ft): `inundation = 0` (below 33.5 threshold)
+- Last days (35.0 ft, after smoothing settles): `inundation = 1`
+
+**Why:** Tests pre-2016 threshold of 33.5 ft. Uses 8 days to allow smoothing to settle.
 
 ---
 
-### Scenario 4: `crossing_threshold_post_2016/`
-**Input:** 5 days going from below to above threshold (32.0 ft)  
-**Period:** 2017-01-01 to 2017-01-05  
-**Heights:** 31.5, 31.9, 32.0, 32.5, 33.0  
-**Expected:**
-- Day 1: `inundation = 0` (below 32.0)
-- Day 2: `inundation = 0` (still below)
-- Day 3: `inundation = 1` (at threshold, `inund_days = 1`)
-- Day 4: `inundation = 1` (`inund_days = 2`)
-- Day 5: `inundation = 1` (`inund_days = 3`)
+### Scenario 4: Threshold Boundary Post-2016
+**Test:** `test_threshold_exactly_at_boundary_post_2016`
+**Period:** 2017-01-01 to 2017-01-08 (8 days)
+**Heights:** [31.5, 31.5, 33.0, 33.0, 33.0, 33.0, 33.0, 33.0]
+**Yolo flows:** [500] * 8
 
-**Why:** Tests post-2016 threshold change to 32.0 ft (datum shift).
+**Expected:**
+- Days 1-2 (31.5 ft): `inundation = 0` (below 32.0 threshold)
+- Last days (33.0 ft, after smoothing settles): `inundation = 1`
+
+**Why:** Tests post-2016 threshold of 32.0 ft (datum change on Oct 3, 2016).
 
 ---
 
-### Scenario 5: `datum_change_2016/`
-**Input:** Days spanning the October 3, 2016 datum change  
-**Period:** 2016-09-30 to 2016-10-05  
-**Heights:** All at 32.5 ft  
-**Expected:**
-- Pre-Oct 3, 2016: `inundation = 0` (32.5 < 33.5)
-- Post-Oct 3, 2016: `inundation = 1` (32.5 ≥ 32.0)
+### Scenario 5: Pre-2016 Height Below Post-Threshold
+**Test:** `test_pre_2016_height_below_post_threshold_not_inundated`
+**Period:** 2015-06-01 to 2015-06-02
+**Heights:** [32.5, 32.5] - between thresholds (above 32.0, below 33.5)
 
-**Why:** Tests that the datum change is applied correctly.
+**Expected:**
+- Both days: `inundation = 0` (32.5 < 33.5 pre-2016 threshold)
+
+**Why:** Tests that pre-2016 uses the higher threshold (33.5 ft), not the post-2016 threshold (32.0 ft).
 
 ---
 
-### Scenario 6: `yolo_flow_correction/`
-**Input:** Inundation event followed by stage drop, but high Yolo flow  
-**Period:** 2020-01-01 to 2020-01-04  
-**Heights:** 34.0, 34.0, 30.0, 30.0  
-**Yolo flows:** 1000, 1000, 4500, 4500  
+### Scenario 6: Post-2016 Height Above Post-Threshold
+**Test:** `test_post_2016_height_above_post_threshold_is_inundated`
+**Period:** 2017-06-01 to 2017-06-02
+**Heights:** [32.5, 32.5] - above post-2016 threshold
+
+**Expected:**
+- Both days: `inundation = 1`
+- `inund_days = [1, 2]`
+
+**Why:** Tests that post-2016 uses the lower threshold (32.0 ft).
+
+---
+
+### Scenario 7: Counter Increment
+**Test:** `test_counter_increments_correctly`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [34.0] * 5 - all above threshold
+
+**Expected:**
+- `inund_days = [1, 2, 3, 4, 5]`
+
+**Why:** Verifies the inundation counter increments by 1 each consecutive day.
+
+---
+
+### Scenario 8: Counter Resets
+**Test:** `test_counter_resets_when_water_recedes`
+**Period:** 2015-01-01 to 2015-01-04 (4 days)
+**Heights:** [34.0, 34.0, 30.0, 30.0]
+**Yolo flows:** [500] * 4 (low to avoid Jessica's correction)
+
 **Expected:**
 - Day 1: `inund_days = 1`
 - Day 2: `inund_days = 2`
-- Day 3: `inund_days = 3` (extended by Jessica's correction: yolo ≥ 4000 + prev > 0)
-- Day 4: `inund_days = 4` (continues due to high flow)
 
-**Why:** Tests Jessica's Yolo flow correction (yolo_dayflow ≥ 4000 cfs extends inundation).
+**Why:** Tests that the counter starts correctly when water rises above threshold.
 
 ---
 
-### Scenario 7: `inundation_reset/`
-**Input:** Inundation event followed by drop in both stage and flow  
-**Period:** 2020-01-01 to 2020-01-04  
-**Heights:** 34.0, 34.0, 30.0, 30.0  
-**Yolo flows:** 1000, 1000, 1000, 1000 (low)  
+### Scenario 9: Yolo Flow Correction Extends Counter
+**Test:** `test_yolo_correction_extends_counter`
+**Period:** 2015-01-01 to 2015-01-04 (4 days)
+**Heights:** [34.0, 34.0, 30.0, 30.0] - drops below threshold on day 3
+**Yolo flows:** [1000, 1000, 4500, 4500] - high flow on days 3-4
+
 **Expected:**
 - Day 1: `inund_days = 1`
 - Day 2: `inund_days = 2`
-- Day 3: `inund_days = 0` (reset - no Yolo correction)
-- Day 4: `inund_days = 0`
+- Day 3: `inund_days >= 3` (Jessica's correction triggers)
+- Day 4: `inund_days >= 4` (continues due to high flow)
 
-**Why:** Tests that inundation properly resets when conditions return to normal.
+**Why:** Tests Jessica's Yolo flow correction (yolo_dayflow ≥ 4000 cfs + previous inund_days > 0 extends the counter).
 
 ---
 
-### Scenario 8: `binary_indicator_consistency/`
-**Input:** Mixed inundation and non-inundation days  
-**Period:** 2020-01-01 to 2020-01-05  
-**Heights:** 34.0, 30.0, 34.0, 30.0, 34.0  
+### Scenario 10: Yolo Correction Doesn't Trigger Below 4000 cfs
+**Test:** `test_yolo_correction_doesnt_trigger_below_4000`
+**Period:** 2015-01-01 to 2015-01-04 (4 days)
+**Heights:** [34.0, 34.0, 30.0, 30.0]
+**Yolo flows:** [1000, 1000, 3000, 3000] - all below 4000 cfs
+
 **Expected:**
-- `inundation` matches `(inund_days > 0).astype(int)` for all rows
+- Day 1: `inund_days = 1`
+- Day 2: `inund_days = 2`
+
+**Why:** Verifies the 4000 cfs threshold for Jessica's correction is enforced.
+
+---
+
+### Scenario 11: Binary Indicator Matches Counter
+**Test:** `test_binary_matches_counter_simple`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [34.0, 30.0, 34.0, 30.0, 34.0] - alternating
+
+**Expected:**
+- `inundation` column equals `(inund_days > 0).astype(int)` for ALL rows
 
 **Why:** Tests that the binary indicator is always consistent with the counter.
 
 ---
 
-## Generation Method
+### Scenario 12: Binary Indicator Values
+**Test:** `test_binary_indicator_is_only_zero_or_one`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [34.0, 30.0, 34.0, 30.0, 34.0]
 
-These fixtures are **manually-defined** based on the documented inundation rules:
+**Expected:**
+- All values in `inundation` column are either 0 or 1
 
-- **Pre-2016-10-03 threshold:** ≥ 33.5 ft
-- **Post-2016-10-03 threshold:** ≥ 32.0 ft
-- **Yolo correction:** yolo_dayflow ≥ 4000 cfs + previous inund_days > 0 → extend counter
-- **Counter behavior:** Increments daily during inundation, resets to 0 when conditions clear
+**Why:** Tests data integrity of the binary indicator.
 
-## Why Not Use the R Package as Reference?
+---
+
+### Scenario 13: Stage Height Preservation
+**Test:** `test_height_sac_within_tolerance`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [35.0] * 5
+
+**Expected:**
+- All `height_sac` values within 0.1 ft of 35.0
+
+**Why:** Verifies that stage heights are preserved through the calculation (with tolerance for ewm smoothing).
+
+---
+
+## Inundation Rules (Documented Behavior)
+
+These tests verify the following rules from the documented inundation logic:
+
+| Rule | Threshold |
+|------|-----------|
+| Pre-2016-10-03 stage threshold | ≥ 33.5 ft |
+| Post-2016-10-03 stage threshold | ≥ 32.0 ft |
+| Yolo flow correction | yolo_dayflow ≥ 4000 cfs |
+| Yolo correction precondition | previous inund_days > 0 |
+
+## Tolerance
+
+| Output | Tolerance |
+|--------|-----------|
+| `height_sac` | ±0.1 ft (due to ewm smoothing) |
+| `inund_days` | Exact match (integer) |
+| `inundation` | Exact match (0 or 1) |
+
+## Why Not Use R Package as Reference?
 
 Ideally, expected outputs would be generated from the original R package. However:
 
 1. The R package's tests only verify column existence (not specific values)
-2. Our scenarios are simple enough that expected values can be computed from documented rules
-3. These tests guarantee deterministic behavior of our Python implementation
+2. Our scenarios are simple enough that expected values can be derived from documented rules
+3. In-memory tests are self-contained and run without network/R dependencies
 
-If you have access to the R package, you can verify these scenarios by running:
-
-```r
-library(inundation)
-# Mock the data sources with our test inputs
-result <- calc_inundation()
-```
-
-## Tolerance
-
-For floating-point comparisons (e.g., `height_sac` after exponential weighted mean):
-- **Stage height:** ±0.1 ft tolerance
-- **Inundation counter (`inund_days`):** Exact match (integer)
-- **Binary indicator (`inundation`):** Exact match (0 or 1)
-
-## File Format
-
-Each scenario directory contains:
-- `fre_input.csv` - Mock Fremont Weir hourly data
-- `dayflow_input.csv` - Mock Dayflow daily data
-- `expected_output.csv` - Expected `calc_inundation()` output
+If you want to verify these scenarios match the R package output, you can run the same scenarios in R using `inundation::calc_inundation()` with mocked data sources.
