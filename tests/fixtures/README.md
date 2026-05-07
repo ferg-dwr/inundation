@@ -198,6 +198,71 @@ The `calc_inundation()` function applies **exponential weighted mean (ewm) smoot
 
 ---
 
+### Scenario 14: NaN Imputation in Stage Height
+**Test:** `test_nan_in_stage_height_imputed`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [35.0, NaN, 35.0, NaN, 35.0]
+
+**Expected:**
+- No NaN values remain in `height_sac` after imputation
+
+**Why:** Verifies that the imputation logic (forward-fill, backward-fill, exponential weighted mean) successfully fills missing values.
+
+---
+
+### Scenario 15: Imputed Heights Are Reasonable
+**Test:** `test_imputed_heights_within_reasonable_range`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [35.0, NaN, 35.0, NaN, 35.0]
+
+**Expected:**
+- All imputed values within ±0.5 ft of 35.0
+
+**Why:** Verifies that imputation produces values close to surrounding non-NaN data, not random or zero values.
+
+---
+
+### Scenario 16: Inundation with Missing Data
+**Test:** `test_inundation_calculation_with_missing_data`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [35.0, NaN, 35.0, NaN, 35.0]
+
+**Expected:**
+- All days: `inundation = 1` (after imputation, all heights ~35.0 ft above threshold)
+
+**Why:** End-to-end verification that the full inundation calculation works correctly with imputed values.
+
+---
+
+### Scenario 17: Missing Dayflow Values
+**Test:** `test_dayflow_missing_values_handled`
+**Period:** 2015-01-01 to 2015-01-03 (3 days)
+**Heights:** [34.0] * 3
+**SAC flows:** [3000.0, NaN, 3000.0]
+**Yolo flows:** [500.0, NaN, 500.0]
+
+**Expected:**
+- Calculation completes without errors
+- `inund_days` and `inundation` columns contain no NaN values
+
+**Why:** Verifies that NaN dayflow values don't crash the calculation. The implementation drops NaN dayflow rows.
+
+---
+
+### Scenario 18: No Missing Data Baseline
+**Test:** `test_no_missing_data_baseline`
+**Period:** 2015-01-01 to 2015-01-05 (5 days)
+**Heights:** [35.0] * 5
+
+**Expected:**
+- All heights ~35.0 (within 0.1 ft)
+- All days inundated
+- `inund_days = [1, 2, 3, 4, 5]`
+
+**Why:** Baseline test for comparison with missing-data scenarios. Provides a "ground truth" of expected behavior.
+
+---
+
 ## Inundation Rules (Documented Behavior)
 
 These tests verify the following rules from the documented inundation logic:
@@ -208,14 +273,26 @@ These tests verify the following rules from the documented inundation logic:
 | Post-2016-10-03 stage threshold | ≥ 32.0 ft |
 | Yolo flow correction | yolo_dayflow ≥ 4000 cfs |
 | Yolo correction precondition | previous inund_days > 0 |
+| Missing data imputation | forward-fill, backward-fill, ewm (span=7) |
 
 ## Tolerance
 
 | Output | Tolerance |
 |--------|-----------|
-| `height_sac` | ±0.1 ft (due to ewm smoothing) |
+| `height_sac` (no missing data) | ±0.1 ft |
+| `height_sac` (with imputation) | ±0.5 ft |
 | `inund_days` | Exact match (integer) |
 | `inundation` | Exact match (0 or 1) |
+
+## Version Info
+
+These tests were created and validated against:
+- **Python package version:** `inundation` v0.1.0
+- **Python:** 3.10+
+- **pandas:** 2.x
+- **R package reference:** `goertler/inundation` v0.1.0 (https://zenodo.org/records/6450272)
+
+If the Python package version changes significantly, these tests should be re-validated.
 
 ## Why Not Use R Package as Reference?
 

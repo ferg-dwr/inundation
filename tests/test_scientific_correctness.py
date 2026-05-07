@@ -172,7 +172,9 @@ class TestThresholdBehavior:
             Days 3+ (35.0 ft): some should be inundated
         """
         dates = pd.date_range("2015-01-01", periods=8)
-        fre_data = _create_hourly_fre_data(dates, [33.0, 33.0, 35.0, 35.0, 35.0, 35.0, 35.0, 35.0])
+        fre_data = _create_hourly_fre_data(
+            dates, [33.0, 33.0, 35.0, 35.0, 35.0, 35.0, 35.0, 35.0]
+        )
         dayflow_data = _create_dayflow_data(
             dates,
             sac_flows=[3000.0] * 8,
@@ -198,7 +200,7 @@ class TestThresholdBehavior:
             f"Last day (35.0 ft, smoothed) should be inundated, got {result.iloc[-1]['inundation']}"
         )
         assert result.iloc[-2]["inundation"] == 1, (
-            "Second-to-last day (35.0 ft, smoothed) should be inundated"
+            f"Second-to-last day (35.0 ft, smoothed) should be inundated"
         )
         # Verify at least some days are inundated when above threshold
         days_above = result.iloc[2:]
@@ -222,7 +224,9 @@ class TestThresholdBehavior:
             Last days (33.0 ft, smoothed): inundation=1
         """
         dates = pd.date_range("2017-01-01", periods=8)
-        fre_data = _create_hourly_fre_data(dates, [31.5, 31.5, 33.0, 33.0, 33.0, 33.0, 33.0, 33.0])
+        fre_data = _create_hourly_fre_data(
+            dates, [31.5, 31.5, 33.0, 33.0, 33.0, 33.0, 33.0, 33.0]
+        )
         dayflow_data = _create_dayflow_data(
             dates,
             sac_flows=[3000.0] * 8,
@@ -403,7 +407,9 @@ class TestYoloFlowCorrection:
         assert result.iloc[2]["inund_days"] >= 3, (
             "Day 3 should continue due to Yolo correction (>=4000 cfs)"
         )
-        assert result.iloc[3]["inund_days"] >= 4, "Day 4 should continue due to Yolo correction"
+        assert result.iloc[3]["inund_days"] >= 4, (
+            "Day 4 should continue due to Yolo correction"
+        )
 
     def test_yolo_correction_doesnt_trigger_below_4000(self) -> None:
         """
@@ -520,4 +526,239 @@ class TestStageHeightPreservation:
 
         # All heights should be close to 35.0 (within 0.1 ft tolerance)
         for height in result["height_sac"]:
-            assert abs(height - 35.0) < 0.1, f"Height {height} should be within 0.1 ft of 35.0"
+            assert abs(height - 35.0) < 0.1, (
+                f"Height {height} should be within 0.1 ft of 35.0"
+            )
+
+
+class TestMissingDataAndImputation:
+    """
+    Tests for missing-data and imputation behavior.
+
+    Missing data handling is a common source of subtle differences between
+    R and Python implementations, so these tests verify the documented
+    behavior with explicit expected outputs.
+
+    The implementation imputes missing FRE values using:
+    - forward-fill, then backward-fill
+    - exponential weighted mean (ewm) with span=7
+    """
+
+    def test_nan_in_stage_height_imputed(self) -> None:
+        """
+        Scenario: Missing FRE values in the middle of a sequence.
+        Period: 2015-01-01 to 2015-01-05 (5 days).
+
+        Heights with NaN: [35.0, NaN, 35.0, NaN, 35.0]
+        Yolo flows: [500] * 5
+
+        Expected: Missing values should be imputed (not propagate as NaN).
+        After imputation, all days should have valid (non-NaN) heights
+        and the inundation calculation should complete successfully.
+        """
+        dates = pd.date_range("2015-01-01", periods=5)
+
+        # Create data with NaN values in the middle
+        datetimes = []
+        values = []
+        heights = [35.0, float("nan"), 35.0, float("nan"), 35.0]
+        for date, height in zip(dates, heights, strict=True):
+            for hour in range(24):
+                datetimes.append(date + timedelta(hours=hour))
+                values.append(height)
+
+        fre_data = pd.DataFrame(
+            {
+                "datetime": datetimes,
+                "value": values,
+                "station_id": "FRE",
+                "sensor_number": "1",
+                "duration": "H",
+            }
+        )
+
+        dayflow_data = _create_dayflow_data(
+            dates,
+            sac_flows=[3000.0] * 5,
+            yolo_flows=[500.0] * 5,
+        )
+
+        with patch("inundation.inundation.get_fre") as mock_fre:
+            with patch("inundation.inundation.get_dayflow") as mock_dayflow:
+                mock_fre.return_value = fre_data
+                mock_dayflow.return_value = dayflow_data
+                result = calc_inundation()
+
+        # No NaN values should remain after imputation
+        assert not result["height_sac"].isna().any(), (
+            "All height_sac values should be imputed (no NaN remaining)"
+        )
+
+    def test_imputed_heights_within_reasonable_range(self) -> None:
+        """
+        Scenario: Imputation should produce reasonable values.
+        Period: 2015-01-01 to 2015-01-05 (5 days).
+
+        Heights: [35.0, NaN, 35.0, NaN, 35.0]
+
+        Expected: Imputed values should be close to the surrounding
+        non-NaN values (35.0), within ±0.5 ft tolerance.
+        """
+        dates = pd.date_range("2015-01-01", periods=5)
+
+        # Heights with gaps - should be imputed to ~35.0
+        heights = [35.0, float("nan"), 35.0, float("nan"), 35.0]
+
+        datetimes = []
+        values = []
+        for date, height in zip(dates, heights, strict=True):
+            for hour in range(24):
+                datetimes.append(date + timedelta(hours=hour))
+                values.append(height)
+
+        fre_data = pd.DataFrame(
+            {
+                "datetime": datetimes,
+                "value": values,
+                "station_id": "FRE",
+                "sensor_number": "1",
+                "duration": "H",
+            }
+        )
+
+        dayflow_data = _create_dayflow_data(
+            dates,
+            sac_flows=[3000.0] * 5,
+            yolo_flows=[500.0] * 5,
+        )
+
+        with patch("inundation.inundation.get_fre") as mock_fre:
+            with patch("inundation.inundation.get_dayflow") as mock_dayflow:
+                mock_fre.return_value = fre_data
+                mock_dayflow.return_value = dayflow_data
+                result = calc_inundation()
+
+        # All imputed heights should be reasonable (close to 35.0)
+        for i, height in enumerate(result["height_sac"]):
+            assert abs(height - 35.0) < 0.5, (
+                f"Day {i + 1} imputed height {height:.2f} should be near 35.0 ft"
+            )
+
+    def test_inundation_calculation_with_missing_data(self) -> None:
+        """
+        Scenario: Verify inundation calculation works correctly when
+        FRE data has gaps that get imputed.
+
+        Heights: [35.0, NaN, 35.0, NaN, 35.0] - all valid heights are above threshold
+        Yolo flows: [500] * 5
+
+        Expected: After imputation, all days should be inundated since
+        the surrounding values are 35.0 ft (above 33.5 ft threshold).
+        """
+        dates = pd.date_range("2015-01-01", periods=5)
+
+        heights = [35.0, float("nan"), 35.0, float("nan"), 35.0]
+
+        datetimes = []
+        values = []
+        for date, height in zip(dates, heights, strict=True):
+            for hour in range(24):
+                datetimes.append(date + timedelta(hours=hour))
+                values.append(height)
+
+        fre_data = pd.DataFrame(
+            {
+                "datetime": datetimes,
+                "value": values,
+                "station_id": "FRE",
+                "sensor_number": "1",
+                "duration": "H",
+            }
+        )
+
+        dayflow_data = _create_dayflow_data(
+            dates,
+            sac_flows=[3000.0] * 5,
+            yolo_flows=[500.0] * 5,
+        )
+
+        with patch("inundation.inundation.get_fre") as mock_fre:
+            with patch("inundation.inundation.get_dayflow") as mock_dayflow:
+                mock_fre.return_value = fre_data
+                mock_dayflow.return_value = dayflow_data
+                result = calc_inundation()
+
+        # All days should be inundated (after imputation, heights ~ 35.0 > 33.5)
+        assert (result["inundation"] == 1).all(), (
+            "All days should be inundated after imputation with valid surrounding data"
+        )
+
+    def test_dayflow_missing_values_handled(self) -> None:
+        """
+        Scenario: Verify the calculation completes when dayflow has NaN values.
+
+        Heights: [34.0] * 3 (above threshold)
+        SAC flows: [3000.0, NaN, 3000.0]
+        Yolo flows: [500.0, NaN, 500.0]
+
+        Expected: Calculation should complete without error.
+        Note: calc_inundation drops NaN dayflow rows, so result may be shorter.
+        """
+        dates = pd.date_range("2015-01-01", periods=3)
+        fre_data = _create_hourly_fre_data(dates, [34.0, 34.0, 34.0])
+
+        # Dayflow with NaN values
+        dayflow_data = pd.DataFrame(
+            {
+                "date": dates,
+                "sac": [3000.0, float("nan"), 3000.0],
+                "yolo": [500.0, float("nan"), 500.0],
+            }
+        )
+
+        with patch("inundation.inundation.get_fre") as mock_fre:
+            with patch("inundation.inundation.get_dayflow") as mock_dayflow:
+                mock_fre.return_value = fre_data
+                mock_dayflow.return_value = dayflow_data
+                result = calc_inundation()
+
+        # Result should be a valid DataFrame with no NaN in critical columns
+        assert isinstance(result, pd.DataFrame)
+        assert not result["inund_days"].isna().any(), "inund_days should not contain NaN"
+        assert not result["inundation"].isna().any(), "inundation should not contain NaN"
+
+    def test_no_missing_data_baseline(self) -> None:
+        """
+        Scenario: Baseline test with no missing data for comparison.
+        Period: 2015-01-01 to 2015-01-05 (5 days).
+
+        Heights: [35.0] * 5 (all valid, all above threshold)
+
+        Expected: All heights very close to 35.0, all days inundated,
+        counter increments [1, 2, 3, 4, 5].
+
+        This is the baseline against which missing-data tests can be compared.
+        """
+        dates = pd.date_range("2015-01-01", periods=5)
+        fre_data = _create_hourly_fre_data(dates, [35.0] * 5)
+        dayflow_data = _create_dayflow_data(
+            dates,
+            sac_flows=[3000.0] * 5,
+            yolo_flows=[500.0] * 5,
+        )
+
+        with patch("inundation.inundation.get_fre") as mock_fre:
+            with patch("inundation.inundation.get_dayflow") as mock_dayflow:
+                mock_fre.return_value = fre_data
+                mock_dayflow.return_value = dayflow_data
+                result = calc_inundation()
+
+        # All heights should be exactly preserved (no NaN to impute)
+        for height in result["height_sac"]:
+            assert abs(height - 35.0) < 0.1, f"Height {height} should be ~35.0"
+
+        # All days inundated
+        assert (result["inundation"] == 1).all()
+
+        # Counter should increment correctly
+        assert result["inund_days"].tolist() == [1, 2, 3, 4, 5]
