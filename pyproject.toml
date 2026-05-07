@@ -10,12 +10,12 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Jeanette Clark", note = "Original R package author"},
-    {name = "Pascale A.L. Goertler", note = "Original R package author"},
-    {name = "Fernando E. Romero Galvan", email = "fernando.romero-galvan@water.ca.gov", note = "Python translation and maintenance"},
+    {name = "Jeanette Clark"},
+    {name = "Pascale A.L. Goertler"},
+    {name = "Fernando E. Romero Galvan", email = "fernando.romero-galvan@water.ca.gov"},
 ]
 maintainers = [
-    {name = "Fernando E. Romero Galvan", email = "fernando.romero-galvan@water.ca.gov", affiliation = "California Department of Water Resources"},
+    {name = "Fernando E. Romero Galvan", email = "fernando.romero-galvan@water.ca.gov"},
 ]
 keywords = ["yolo bypass", "inundation", "california", "water", "hydrology", "fremont weir"]
 classifiers = [
