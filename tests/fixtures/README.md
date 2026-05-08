@@ -1,8 +1,24 @@
 # Test Fixtures
 
-This directory documents test scenarios for **scientific correctness tests** in `tests/test_scientific_correctness.py`.
+This directory contains test fixtures for two different testing purposes:
 
-## Purpose
+1. **API fixture files** in the `fre/` and `dayflow/` subdirectories - CSV/JSON files used by mocked API tests in `tests/test_api_edge_cases.py`. See the README in each subdirectory for details on individual files.
+
+2. **Documentation for scientific correctness tests** (below) - In-memory test scenarios used by `tests/test_scientific_correctness.py`.
+
+## Quick Reference
+
+| Test Type | Test File | Fixture Source | Documentation |
+|-----------|-----------|----------------|---------------|
+| Scientific correctness | `tests/test_scientific_correctness.py` | In-memory (helpers) | This file (below) |
+| API edge cases | `tests/test_api_edge_cases.py` | `fre/`, `dayflow/` | Subdirectory READMEs |
+| Live integration | `tests/test_integration.py` | Real APIs (CDEC, CNRA) | N/A - hits live APIs |
+
+---
+
+## Scientific Correctness Tests Documentation
+
+### Purpose
 
 These tests provide **known inputs with known expected outputs** to verify that the inundation calculation logic produces correct results. Unlike structural tests that just verify "the function returns a DataFrame," these tests verify **exact expected values** for specific scenarios.
 

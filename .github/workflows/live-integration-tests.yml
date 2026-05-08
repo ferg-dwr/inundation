@@ -1,0 +1,72 @@
+name: Live Integration Tests
+
+# Live integration tests hit real external APIs (CDEC, CNRA).
+# These tests can be flaky due to network conditions or API changes,
+# so they run on a separate schedule rather than blocking PRs.
+
+on:
+  # Run every Monday at 6 AM UTC (10 PM Pacific Sunday)
+  schedule:
+    - cron: '0 6 * * 1'
+
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual run'
+        required: false
+        default: 'Manual integration test verification'
+        type: string
+
+jobs:
+  integration-tests:
+    name: Live API Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run live integration tests
+      run: |
+        # Run only tests marked with @pytest.mark.integration
+        # Allow longer timeout for slow API responses
+        pytest tests/test_integration.py -v -m integration \
+          --timeout=120 \
+          --durations=10 \
+          --cov=src/inundation \
+          --cov-report=xml \
+          --cov-report=term
+
+    - name: Upload coverage to Codecov
+      if: always()
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.xml
+        flags: integration
+        name: integration-coverage
+        fail_ci_if_error: false
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "::warning::Live integration tests failed!"
+        echo "This may indicate:"
+        echo "  - CDEC or CNRA APIs are down"
+        echo "  - API response format has changed"
+        echo "  - Network issues from GitHub Actions runners"
+        echo ""
+        echo "Investigation steps:"
+        echo "  1. Check if APIs are reachable: https://cdec.water.ca.gov/"
+        echo "  2. Run tests locally to confirm: pytest tests/test_integration.py -m integration"
+        echo "  3. Check for API format changes in responses"
+        echo "  4. Update fixtures if API has changed"
