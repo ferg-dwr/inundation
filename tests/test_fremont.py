@@ -90,7 +90,8 @@ FRE,1,H,2020-01-01 02:00,0,---"""
 
             with patch("inundation.fremont.cache_exists", return_value=False):
                 with patch("inundation.fremont.pd.DataFrame.to_csv"):
-                    result = get_fre(use_cache=False)
+                    with patch("inundation.fremont.add_to_index"):
+                        result = get_fre(use_cache=False)
 
         assert isinstance(result, pd.DataFrame)
         assert "datetime" in result.columns
@@ -112,10 +113,11 @@ FRE,1,H,2020-01-01 02:00,0,31.2"""
 
             with patch("inundation.fremont.cache_exists", return_value=False):
                 with patch("inundation.fremont.pd.DataFrame.to_csv"):
-                    result = get_fre(use_cache=False)
+                    with patch("inundation.fremont.add_to_index"):
+                        result = get_fre(use_cache=False)
 
         assert result["value"].dtype in ["float64", "Float64"]
-        assert pd.isna(result.loc[1, "value"])  # --- becomes NaN
+        assert pd.isna(result.loc[1, "value"])
         assert result.loc[0, "value"] == 30.5
 
     def test_datetime_parsing(self) -> None:
@@ -132,7 +134,8 @@ FRE,1,H,2020-01-01 01:00,0,31.2"""
 
             with patch("inundation.fremont.cache_exists", return_value=False):
                 with patch("inundation.fremont.pd.DataFrame.to_csv"):
-                    result = get_fre(use_cache=False)
+                    with patch("inundation.fremont.add_to_index"):
+                        result = get_fre(use_cache=False)
 
         assert pd.api.types.is_datetime64_any_dtype(result["datetime"])
 
@@ -149,7 +152,8 @@ FRE,1,H,2020-01-01 00:00,2020-01-01,0,30.5"""
 
             with patch("inundation.fremont.cache_exists", return_value=False):
                 with patch("inundation.fremont.pd.DataFrame.to_csv"):
-                    result = get_fre(use_cache=False)
+                    with patch("inundation.fremont.add_to_index"):
+                        result = get_fre(use_cache=False)
 
         assert "obs_date" not in result.columns
         assert "data_flag" not in result.columns
@@ -160,14 +164,14 @@ FRE,1,H,2020-01-01 00:00,2020-01-01,0,30.5"""
 2020-01-01 00:00:00,30.5,FRE
 2020-01-01 01:00:00,31.2,FRE"""
 
-        # Create the actual dataframe that would be returned from cache
         cached_df = pd.read_csv(io.StringIO(cached_csv))
         cached_df["datetime"] = pd.to_datetime(cached_df["datetime"])
 
         with patch("inundation.fremont.cache_exists", return_value=True):
-            with patch("inundation.fremont.pd.read_csv") as mock_read:
-                mock_read.return_value = cached_df
-                result = get_fre(use_cache=True)
+            with patch("inundation.fremont.matches_cache_request", return_value=True):
+                with patch("inundation.fremont.pd.read_csv") as mock_read:
+                    mock_read.return_value = cached_df
+                    result = get_fre(use_cache=True)
 
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 2
@@ -195,9 +199,9 @@ FRE,1,H,2020-01-01 00:00,0,30.5"""
 
             with patch("inundation.fremont.cache_exists", return_value=False):
                 with patch("inundation.fremont.pd.DataFrame.to_csv"):
-                    get_fre(use_cache=False)
+                    with patch("inundation.fremont.add_to_index"):
+                        get_fre(use_cache=False)
 
-            # Verify the URL was called with today's date
             called_url = mock_get.call_args[0][0]
             from datetime import datetime
 
@@ -217,11 +221,31 @@ FRE,1,H,2020-01-01 00:00,0,30.5"""
 
             with patch("inundation.fremont.cache_exists", return_value=False):
                 with patch("inundation.fremont.pd.DataFrame.to_csv"):
-                    get_fre(end=None, use_cache=False)
+                    with patch("inundation.fremont.add_to_index"):
+                        get_fre(end=None, use_cache=False)
 
-            # Verify the URL was called with today's date
             called_url = mock_get.call_args[0][0]
             from datetime import datetime
 
             today = datetime.now().strftime("%Y-%m-%d")
             assert f"End={today}" in called_url
+
+    def test_refresh_forces_download(self) -> None:
+        """Test that refresh=True forces a fresh download even if cache exists."""
+        mock_csv = """Station ID,Sensor Number,Dur Code,Date Time,Data Flag,Value
+FRE,1,H,2020-01-01 00:00,0,30.5"""
+
+        with patch("inundation.fremont.cache_exists", return_value=True):
+            with patch("inundation.fremont.requests.get") as mock_get:
+                mock_response = Mock()
+                mock_response.text = mock_csv
+                mock_response.raise_for_status = Mock()
+                mock_get.return_value = mock_response
+
+                with patch("inundation.fremont.pd.DataFrame.to_csv"):
+                    with patch("inundation.fremont.add_to_index"):
+                        result = get_fre(use_cache=True, refresh=True)
+
+        # Should have called requests.get (downloaded fresh)
+        assert mock_get.called
+        assert isinstance(result, pd.DataFrame)

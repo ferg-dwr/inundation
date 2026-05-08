@@ -15,7 +15,12 @@ import json
 import pandas as pd
 import requests
 
-from .cache import cache_exists, get_cache_file
+from .cache import (
+    add_to_index,
+    cache_exists,
+    get_cache_file,
+    matches_cache_request,
+)
 
 
 def _get_csv_urls_from_metadata(metadata: dict) -> list[str]:
@@ -133,19 +138,39 @@ def _process_dayflow_data(dayflow: pd.DataFrame) -> pd.DataFrame:
     return dayflow
 
 
-def get_dayflow(use_cache: bool = True) -> pd.DataFrame:
+# Cache configuration
+DAYFLOW_CACHE_FILE = "dayflow.csv"
+DAYFLOW_METADATA_URL = (
+    "https://data.cnra.ca.gov/dataset/06ee2016-b138-47d7-9e85-f46fae674536.jsonld"
+)
+
+
+def get_dayflow(use_cache: bool = True, refresh: bool = False) -> pd.DataFrame:
     """Download Dayflow data for Sacramento River and Yolo Bypass.
 
     Downloads daily flow data from the California Natural Resources Agency.
     Data includes flows for the Sacramento River (SAC) and Yolo Bypass (YOLO).
 
-    Data is retrieved from the CNRA's JSON API, which returns multiple CSV files
-    that are parsed, combined, and cached locally.
+    Caching behavior:
+
+    - ``use_cache=True`` (default): Read from cache if available, otherwise
+      download. Save successful downloads to cache.
+
+    - ``use_cache=False``: Disable BOTH reading and writing to cache.
+      Use this for one-off queries that should not affect cache state
+      (e.g., testing, exploring, or full reproducibility).
+
+    - ``refresh=True``: Force a fresh download even if cache exists.
+      Still writes the new data to cache for future use.
 
     Parameters
     ----------
     use_cache : bool, default True
-        If True, read from cache if available. If False, always download.
+        If True, read from and write to cache.
+        If False, disables cache reading AND writing entirely.
+    refresh : bool, default False
+        If True, force fresh download even if cache exists.
+        Still writes to cache (unless use_cache=False).
 
     Returns
     -------
@@ -160,19 +185,24 @@ def get_dayflow(use_cache: bool = True) -> pd.DataFrame:
 
     Examples
     --------
-    >>> dayflow = get_dayflow()
-    >>> print(dayflow.head())
+    Standard usage (uses cache):
 
-    Download new data without cache:
+    >>> dayflow = get_dayflow()
+
+    Force fresh download but keep caching:
+
+    >>> dayflow = get_dayflow(refresh=True)
+
+    Run without touching cache (testing, exploration):
 
     >>> dayflow = get_dayflow(use_cache=False)
 
     Notes
     -----
-    Data is cached locally. To view cached files, use `inundation.cache.show_cache()`.
-    To clear the cache, use `inundation.cache.clear_cache()`.
+    The dayflow dataset begins October 1, 1929.
 
-    The dayflow dataset begins October 1, 1955.
+    To inspect cached files, use :func:`inundation.cache.show_cache`.
+    To clear cache, use :func:`inundation.cache.clear_cache`.
 
     See Also
     --------
@@ -183,22 +213,23 @@ def get_dayflow(use_cache: bool = True) -> pd.DataFrame:
     ----------
     - Dayflow: https://data.cnra.ca.gov/dataset/dayflow
     """
-    cache_file = get_cache_file("dayflow.csv")
+    # Cache parameters (dayflow has no request params - always full dataset)
+    cache_params: dict[str, str] = {}
 
-    # Try to read from cache if available
-    if use_cache and cache_exists("dayflow.csv"):
-        print("Reading dayflow data from cache. To download new data, use use_cache=False.")
-        dayflow = pd.read_csv(cache_file)
-        dayflow["date"] = pd.to_datetime(dayflow["date"])
-        return dayflow
+    # CACHE READ: Try to read from cache if enabled and not refreshing
+    if use_cache and not refresh:
+        if cache_exists(DAYFLOW_CACHE_FILE):
+            # Verify cache matches request (always matches for dayflow since no params)
+            if matches_cache_request(DAYFLOW_CACHE_FILE, cache_params):
+                print(f"Reading dayflow data from cache: {DAYFLOW_CACHE_FILE}")
+                dayflow = pd.read_csv(get_cache_file(DAYFLOW_CACHE_FILE))
+                dayflow["date"] = pd.to_datetime(dayflow["date"])
+                return dayflow
 
-    # Download metadata from CNRA JSON API
+    # DOWNLOAD: Either no cache, or refresh requested, or cache disabled
     print("Downloading dayflow data from CNRA...")
     try:
-        response = requests.get(
-            "https://data.cnra.ca.gov/dataset/06ee2016-b138-47d7-9e85-f46fae674536.jsonld",
-            timeout=30,
-        )
+        response = requests.get(DAYFLOW_METADATA_URL, timeout=30)
         response.raise_for_status()
     except requests.RequestException as e:
         raise RuntimeError(f"Failed to download dayflow metadata from CNRA: {e}") from e
@@ -218,9 +249,19 @@ def get_dayflow(use_cache: bool = True) -> pd.DataFrame:
     # Process and clean
     dayflow = _process_dayflow_data(dayflow)
 
-    # Cache the data
-    dayflow.to_csv(cache_file, index=False)
-    print(f"Data cached to {cache_file}")
+    # CACHE WRITE: Save to cache if enabled
+    if use_cache:
+        cache_path = get_cache_file(DAYFLOW_CACHE_FILE)
+        dayflow.to_csv(cache_path, index=False)
+
+        # Add to cache index with metadata
+        add_to_index(
+            filename=DAYFLOW_CACHE_FILE,
+            params=cache_params,
+            source_url=DAYFLOW_METADATA_URL,
+            row_count=len(dayflow),
+        )
+        print(f"Cached to: {DAYFLOW_CACHE_FILE}")
 
     return dayflow
 
