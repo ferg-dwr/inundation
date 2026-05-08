@@ -1,0 +1,38 @@
+{
+  "@context": {
+    "@language": "en",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dct": "http://purl.org/dc/terms/"
+  },
+  "@graph": [
+    {
+      "@id": "https://data.cnra.ca.gov/dataset/dayflow",
+      "@type": "dcat:Dataset",
+      "dct:title": "Dayflow"
+    },
+    {
+      "@type": "dcat:Distribution",
+      "dct:format": "CSV",
+      "dct:title": "Dayflow Results 2010-2024",
+      "dcat:accessURL": {
+        "@id": "https://data.cnra.ca.gov/dataset/dayflow/resource/abc123/download/dayflow-results-2010-2024.csv"
+      }
+    },
+    {
+      "@type": "dcat:Distribution",
+      "dct:format": "CSV",
+      "dct:title": "Dayflow Results 1997-2009",
+      "dcat:accessURL": {
+        "@id": "https://data.cnra.ca.gov/dataset/dayflow/resource/def456/download/dayflow-results-1997-2009.csv"
+      }
+    },
+    {
+      "@type": "dcat:Distribution",
+      "dct:format": "PDF",
+      "dct:title": "Dayflow Documentation",
+      "dcat:accessURL": {
+        "@id": "https://data.cnra.ca.gov/dataset/dayflow/documentation.pdf"
+      }
+    }
+  ]
+}

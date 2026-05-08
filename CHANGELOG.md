@@ -23,6 +23,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.pre-commit-config.yaml` for local development checks (#4)
 - `NOTICE.md` with full attribution per Apache 2.0 requirements (#2)
 - `.gitattributes` for consistent line endings across platforms
+- Comprehensive API edge case tests in `tests/test_api_edge_cases.py` (#7)
+  - 17+ tests covering empty responses, malformed CSVs, missing columns
+  - Tests for network errors (timeout, connection, HTTP errors)
+  - Tests for request parameter construction
+  - Tests for partial failures in dayflow downloads
+- Synthetic test fixtures in `tests/fixtures/` (#7)
+  - FRE fixtures: valid, empty, malformed, missing column, invalid types
+  - Dayflow fixtures: valid metadata/response, empty, malformed, missing columns
+  - Comprehensive READMEs documenting each fixture and its purpose
+- New live integration tests workflow `.github/workflows/live-integration-tests.yml` (#7)
+  - Runs weekly via cron schedule (Mondays 6 AM UTC)
+  - Manual trigger via workflow_dispatch
+  - Notifies on failure with troubleshooting steps
 
 ### Changed
 - `use_cache=False` now disables BOTH reading AND writing to cache (#6)
@@ -31,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Releases now triggered by version tags only (#4)
 - Updated GitHub Actions to latest versions (#4)
 - Updated authors and attribution (#2)
+- Integration tests now properly separated from PR CI (#7)
+  - PR CI runs only fast mocked tests
+  - Live API tests run on schedule and on demand
+  - Faster, more reliable CI feedback for contributors
 
 ### Fixed
 - Pandas 2.x compatibility issues

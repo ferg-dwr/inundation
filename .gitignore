@@ -134,6 +134,9 @@ data/
 output/
 *.csv
 
+# Include etest fixtures
+!tests/fixtures/**/*.csv
+
 # Cache files
 .inundation_cache/
 
