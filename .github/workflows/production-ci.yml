@@ -3,6 +3,8 @@ name: Production CI/CD
 on:
   push:
     branches: [main, develop]
+    tags:
+      - 'v*.*.*'  # Only trigger release on version tags like v0.1.0, v1.2.3
   pull_request:
     branches: [main, develop]
 
@@ -15,10 +17,10 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -41,14 +43,10 @@ jobs:
     
     - name: Run unit tests
       run: |
-        pytest tests/ -v -k "not integration" --cov=src/inundation --cov-report=xml
-    
-    - name: Run integration tests
-      run: |
-        pytest tests/test_integration.py -v -m integration
+        pytest tests/ -v -m "not integration" --cov=src/inundation --cov-report=xml
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
@@ -56,14 +54,16 @@ jobs:
         fail_ci_if_error: false
 
   integration:
+    # Live integration tests - run only on develop branch and tags
+    # These tests hit real external services (CDEC, CNRA)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/v')
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
@@ -74,7 +74,7 @@ jobs:
     
     - name: Test with real data (integration tests)
       run: |
-        pytest tests/test_integration.py -v --durations=10
+        pytest tests/test_integration.py -v -m integration --durations=10
     
     - name: Generate coverage report
       run: |
@@ -90,10 +90,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
@@ -105,16 +105,21 @@ jobs:
       run: |
         bandit -r src/ -ll
 
-  publish:
+  release:
+    # Releases ONLY trigger on version tags (e.g., v0.1.0, v1.2.3)
+    # To create a release: git tag v0.1.0 && git push origin v0.1.0
     needs: [test, integration, security]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write  # Needed to create releases
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
@@ -130,15 +135,21 @@ jobs:
       run: |
         twine check dist/*
     
+    - name: Extract version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
     - name: Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ github.run_number }}
-        release_name: Release ${{ github.run_number }}
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        name: Release ${{ steps.version.outputs.VERSION }}
         body: |
-          Automated release from CI/CD pipeline
-          All tests passing, security checks passed
+          Release ${{ steps.version.outputs.VERSION }}
+          
+          See [CHANGELOG.md](https://github.com/ferg-dwr/inundation/blob/main/CHANGELOG.md) for details.
+          
+          All tests passed and security checks completed successfully.
         draft: false
         prerelease: false
+        files: dist/*
