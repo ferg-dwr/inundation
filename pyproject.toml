@@ -53,10 +53,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/YOUR-USERNAME/inundation"
-Repository = "https://github.com/YOUR-USERNAME/inundation.git"
+Homepage = "https://github.com/ferg-dwr/inundation"
+Repository = "https://github.com/ferg-dwr/inundation.git"
 Documentation = "https://python-inundation.readthedocs.io"
-"Bug Tracker" = "https://github.com/YOUR-USERNAME/inundation/issues"
+"Bug Tracker" = "https://github.com/ferg-dwr/inundation/issues"
 "Original R Package" = "https://github.com/goertler/inundation"
 
 [tool.setuptools]
