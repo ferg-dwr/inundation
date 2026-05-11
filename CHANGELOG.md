@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-12
+
 ### Added
 - Request-aware caching system (#6)
   - Cache files now include request parameters in filename (e.g., `fre_FRE_2020-01-01_2020-12-31.csv`)
@@ -76,5 +78,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `MAINTAINERS.md` - Maintainer info and governance structure
   - `.github/CODEOWNERS` - Automatic review request configuration
 
-[Unreleased]: https://github.com/ferg-dwr/inundation/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ferg-dwr/inundation/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ferg-dwr/inundation/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ferg-dwr/inundation/releases/tag/v0.1.0
