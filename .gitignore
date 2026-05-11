@@ -134,7 +134,7 @@ data/
 output/
 *.csv
 
-# Include etest fixtures
+# Include test fixtures
 !tests/fixtures/**/*.csv
 
 # Cache files
