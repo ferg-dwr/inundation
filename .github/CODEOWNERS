@@ -1,0 +1,45 @@
+# CODEOWNERS for inundation
+#
+# This file defines who is automatically requested for review when PRs
+# are opened against specific files or directories.
+#
+# Format: <pattern> <owner1> <owner2> ...
+#
+# For more info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repository
+# This applies to any file unless overridden below
+*                                       @ferg-dwr
+
+# Python source code
+/src/                                   @ferg-dwr
+*.py                                    @ferg-dwr
+
+# Tests
+/tests/                                 @ferg-dwr
+
+# CI/CD and infrastructure
+/.github/                               @ferg-dwr
+/.github/workflows/                     @ferg-dwr
+
+# Documentation
+*.md                                    @ferg-dwr
+/docs/                                  @ferg-dwr
+
+# Project configuration
+/pyproject.toml                         @ferg-dwr
+/.pre-commit-config.yaml                @ferg-dwr
+/.gitignore                             @ferg-dwr
+/.gitattributes                         @ferg-dwr
+
+# Licensing and attribution (sensitive files)
+/LICENSE.md                             @ferg-dwr
+/NOTICE.md                              @ferg-dwr
+/CITATION.cff                           @ferg-dwr
+
+# Governance and community files
+/MAINTAINERS.md                         @ferg-dwr
+/CODE_OF_CONDUCT.md                     @ferg-dwr
+/SECURITY.md                            @ferg-dwr
+/CONTRIBUTING.md                        @ferg-dwr
+/CODEOWNERS                             @ferg-dwr

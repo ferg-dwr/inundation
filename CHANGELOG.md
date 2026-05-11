@@ -7,49 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-12
+
 ### Added
+- Request-aware caching system (#6)
+  - Cache files now include request parameters in filename (e.g., `fre_FRE_2020-01-01_2020-12-31.csv`)
+  - Single `cache_index.json` tracks metadata for all cached files
+  - Metadata includes: source URL, request parameters, download timestamp, package version, row count, file size
+- New `refresh` parameter for `get_fre()` and `get_dayflow()` (#6)
+- Enhanced `show_cache()` returns metadata-rich entries (#6)
+- Targeted cache clearing in `clear_cache()` (#6)
+- New `docs/caching.md` with comprehensive caching guide (#6)
 - Scientific correctness tests with expected values (#5)
   - 18 deterministic tests verifying inundation calculation logic
-  - Tests for threshold behavior (pre/post 2016 datum change)
-  - Tests for counter increment/reset logic
-  - Tests for Yolo flow correction at 4000 cfs
-  - Tests for missing-data and imputation behavior
+  - Tests for threshold behavior, counter logic, Yolo correction, missing data
   - Documentation in `tests/fixtures/README.md`
-- `CHANGELOG.md` to track package changes (#4)
-- `NOTICE.md` with full attribution per Apache 2.0 requirements (#2)
 - `.pre-commit-config.yaml` for local development checks (#4)
-  - Trailing whitespace, end-of-file fixes
-  - Ruff linting and formatting
-  - Black code formatting
-  - MyPy type checking
-- Updated README.md with pre-commit hook setup instructions (#4)
+- `NOTICE.md` with full attribution per Apache 2.0 requirements (#2)
+- `.gitattributes` for consistent line endings across platforms
+- Comprehensive API edge case tests in `tests/test_api_edge_cases.py` (#7)
+  - 17+ tests covering empty responses, malformed CSVs, missing columns
+  - Tests for network errors (timeout, connection, HTTP errors)
+  - Tests for request parameter construction
+  - Tests for partial failures in dayflow downloads
+- Synthetic test fixtures in `tests/fixtures/` (#7)
+  - FRE fixtures: valid, empty, malformed, missing column, invalid types
+  - Dayflow fixtures: valid metadata/response, empty, malformed, missing columns
+  - Comprehensive READMEs documenting each fixture and its purpose
+- New live integration tests workflow `.github/workflows/live-integration-tests.yml` (#7)
+  - Runs weekly via cron schedule (Mondays 6 AM UTC)
+  - Manual trigger via workflow_dispatch
+  - Notifies on failure with troubleshooting steps
 
 ### Changed
+- `use_cache=False` now disables BOTH reading AND writing to cache (#6)
 - License changed from MIT to Apache 2.0 (#2)
-  - Matches original R package license
-  - Copyright assigned to State of California, Department of Water Resources
 - CI workflow no longer auto-fixes code (#4)
-  - Replaced `ruff check . --fix` with `ruff check .`
-  - Developers should run linting locally before committing
 - Releases now triggered by version tags only (#4)
-  - Previously: automatic release on every push to main
-  - Now: manual, intentional releases via `git tag vX.Y.Z`
-- Updated GitHub Actions to latest versions (#4):
-  - `actions/checkout@v4`
-  - `actions/setup-python@v5`
-  - `actions/cache@v4`
-  - `codecov/codecov-action@v4`
-  - `softprops/action-gh-release@v2` (replaces deprecated `actions/create-release@v1`)
-- Updated authors and attribution (#2):
-  - Original R package authors: Jeanette Clark and Pascale A.L. Goertler
-  - Python translation: Fernando E. Romero Galvan (DWR)
-  - Removed incorrect "Christopher M. Goertler" references
+- Updated GitHub Actions to latest versions (#4)
+- Updated authors and attribution (#2)
+- Integration tests now properly separated from PR CI (#7)
+  - PR CI runs only fast mocked tests
+  - Live API tests run on schedule and on demand
+  - Faster, more reliable CI feedback for contributors
 
 ### Fixed
-- Pandas 2.x compatibility issues (deprecated `fillna(method=...)`)
-- Test reliability improvements
+- Pandas 2.x compatibility issues
+- mypy type errors in caching module (#6)
+- Removed non-PEP 621 fields from `pyproject.toml` (#11)
+- Applied ruff and black formatting consistently (#13, #14)
+- Normalized line endings to LF across all text files
+- CI now properly excludes integration tests with `-m "not integration"`
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-05-08
 
 ### Added
 - Initial Python translation of the R `inundation` package
@@ -57,12 +67,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_dayflow()` - Download California Dayflow data from CNRA
 - `calc_inundation()` - Calculate Yolo Bypass inundation duration
 - `show_cache()` and `clear_cache()` - Cache management utilities
-- Comprehensive test suite (51+ tests)
-- Mocked tests for external data downloads
-- Integration tests with real data
+- Comprehensive test suite
 - Type hints throughout
 - Full documentation and examples
 - Support for Python 3.10+
+- Community and governance files (#3)
+  - `CONTRIBUTING.md` - Comprehensive contribution guidelines with fork-and-PR workflow
+  - `CODE_OF_CONDUCT.md` - Contributor Covenant v2.1
+  - `SECURITY.md` - Vulnerability reporting via GitHub Security Advisory
+  - `MAINTAINERS.md` - Maintainer info and governance structure
+  - `.github/CODEOWNERS` - Automatic review request configuration
 
-[Unreleased]: https://github.com/ferg-dwr/inundation/compare/main...HEAD
+[Unreleased]: https://github.com/ferg-dwr/inundation/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ferg-dwr/inundation/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/ferg-dwr/inundation/releases/tag/v0.1.0

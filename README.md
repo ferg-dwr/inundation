@@ -68,16 +68,42 @@ dayflow = get_dayflow()
 
 ### Manage cache
 
+The package caches downloaded data locally for fast repeated access. Three flags control caching behavior:
+
+```python
+from inundation import get_fre, get_dayflow
+
+# Default - reads from cache if available, writes after download
+fre = get_fre()
+
+# Force fresh data, but still update cache for next call
+fre = get_fre(refresh=True)
+
+# Don't touch the cache at all (no read, no write)
+fre = get_fre(use_cache=False)
+```
+
+**Cache management functions:**
+
 ```python
 from inundation.cache import show_cache, clear_cache
 
-# View cached files
-files = show_cache()
-print(f"Cached files: {files}")
+# View cached files with rich metadata
+entries = show_cache()
+for entry in entries:
+    print(f"{entry['filename']}: {entry['row_count']} rows, downloaded {entry['downloaded_at']}")
 
-# Clear cache if needed
+# Clear all caches
 clear_cache()
+
+# Clear only Fremont Weir caches
+clear_cache(dataset="fre")
+
+# Clear caches older than 7 days
+clear_cache(older_than_days=7)
 ```
+
+**📖 For detailed information about caching behavior, design philosophy, and best practices, see [docs/caching.md](docs/caching.md).**
 
 ## Data Sources
 

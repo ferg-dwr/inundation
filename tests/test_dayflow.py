@@ -23,10 +23,12 @@ class TestGetDayflow:
         cached_df = pd.read_csv(io.StringIO(cached_csv))
         cached_df["date"] = pd.to_datetime(cached_df["date"])
 
+        # Now we need to mock matches_cache_request as well
         with patch("inundation.dayflow.cache_exists", return_value=True):
-            with patch("inundation.dayflow.pd.read_csv") as mock_read:
-                mock_read.return_value = cached_df
-                result = get_dayflow(use_cache=True)
+            with patch("inundation.dayflow.matches_cache_request", return_value=True):
+                with patch("inundation.dayflow.pd.read_csv") as mock_read:
+                    mock_read.return_value = cached_df
+                    result = get_dayflow(use_cache=True)
 
         assert isinstance(result, pd.DataFrame)
         assert len(result) == 2
@@ -36,7 +38,6 @@ class TestGetDayflow:
 
     def test_download_with_metadata(self) -> None:
         """Test downloading dayflow data with JSON metadata parsing."""
-        # Mock metadata response
         mock_metadata = {
             "@graph": [
                 {
@@ -57,7 +58,6 @@ class TestGetDayflow:
 
         with patch("inundation.dayflow.cache_exists", return_value=False):
             with patch("inundation.dayflow.requests.get") as mock_get:
-                # Setup mock responses
                 metadata_response = Mock()
                 metadata_response.json.return_value = mock_metadata
                 metadata_response.raise_for_status = Mock()
@@ -66,11 +66,11 @@ class TestGetDayflow:
                 csv_response.text = csv_data
                 csv_response.raise_for_status = Mock()
 
-                # First call returns metadata, subsequent calls return CSV
                 mock_get.side_effect = [metadata_response, csv_response, csv_response]
 
                 with patch("inundation.dayflow.pd.DataFrame.to_csv"):
-                    result = get_dayflow(use_cache=False)
+                    with patch("inundation.dayflow.add_to_index"):
+                        result = get_dayflow(use_cache=False)
 
         assert isinstance(result, pd.DataFrame)
         assert len(result) >= 2
@@ -89,7 +89,6 @@ class TestGetDayflow:
             ]
         }
 
-        # CSV without YOLO column
         csv_data = """Date,SAC
 1955-10-01,1234.5
 1955-10-02,1250.3"""
@@ -107,9 +106,9 @@ class TestGetDayflow:
                 mock_get.side_effect = [metadata_response, csv_response]
 
                 with patch("inundation.dayflow.pd.DataFrame.to_csv"):
-                    result = get_dayflow(use_cache=False)
+                    with patch("inundation.dayflow.add_to_index"):
+                        result = get_dayflow(use_cache=False)
 
-        # Should have YOLO column (possibly with NaN values)
         assert "yolo" in result.columns
 
     def test_download_error_handling(self) -> None:
@@ -217,9 +216,9 @@ class TestGetDayflow:
                 ]
 
                 with patch("inundation.dayflow.pd.DataFrame.to_csv"):
-                    result = get_dayflow(use_cache=False)
+                    with patch("inundation.dayflow.add_to_index"):
+                        result = get_dayflow(use_cache=False)
 
-        # Should have 2 rows from file1 + 2 from file2, but duplicates removed
         assert len(result) <= 2
 
     def test_date_sorting(self) -> None:
@@ -251,9 +250,9 @@ class TestGetDayflow:
                 mock_get.side_effect = [metadata_response, csv_response]
 
                 with patch("inundation.dayflow.pd.DataFrame.to_csv"):
-                    result = get_dayflow(use_cache=False)
+                    with patch("inundation.dayflow.add_to_index"):
+                        result = get_dayflow(use_cache=False)
 
-        # Check that dates are in ascending order
         dates = result["date"].values
         assert all(dates[i] <= dates[i + 1] for i in range(len(dates) - 1))
 
@@ -285,11 +284,44 @@ class TestGetDayflow:
                 mock_get.side_effect = [metadata_response, csv_response]
 
                 with patch("inundation.dayflow.pd.DataFrame.to_csv"):
-                    result = get_dayflow(use_cache=False)
+                    with patch("inundation.dayflow.add_to_index"):
+                        result = get_dayflow(use_cache=False)
 
-        # Check types
         assert pd.api.types.is_datetime64_any_dtype(result["date"])
         assert result["sac"].dtype in ["float64", "Float64"]
         assert result["yolo"].dtype in ["float64", "Float64"]
-        # Invalid numeric should become NaN
         assert pd.isna(result.loc[1, "sac"])
+
+    def test_refresh_forces_download(self) -> None:
+        """Test that refresh=True forces a fresh download even if cache exists."""
+        mock_metadata = {
+            "@graph": [
+                {
+                    "dct:format": "CSV",
+                    "dcat:accessURL": {"@id": "https://data.cnra.ca.gov/dataset/results/file1.csv"},
+                }
+            ]
+        }
+
+        csv_data = """Date,SAC,YOLO
+2020-01-01,1234.5,567.8"""
+
+        with patch("inundation.dayflow.cache_exists", return_value=True):
+            with patch("inundation.dayflow.requests.get") as mock_get:
+                metadata_response = Mock()
+                metadata_response.json.return_value = mock_metadata
+                metadata_response.raise_for_status = Mock()
+
+                csv_response = Mock()
+                csv_response.text = csv_data
+                csv_response.raise_for_status = Mock()
+
+                mock_get.side_effect = [metadata_response, csv_response]
+
+                with patch("inundation.dayflow.pd.DataFrame.to_csv"):
+                    with patch("inundation.dayflow.add_to_index"):
+                        result = get_dayflow(use_cache=True, refresh=True)
+
+        # Should have called requests.get (downloaded fresh)
+        assert mock_get.called
+        assert isinstance(result, pd.DataFrame)

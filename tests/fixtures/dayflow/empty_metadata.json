@@ -1,0 +1,10 @@
+{
+  "@context": {},
+  "@graph": [
+    {
+      "@id": "https://data.cnra.ca.gov/dataset/dayflow",
+      "@type": "dcat:Dataset",
+      "dct:title": "Dayflow"
+    }
+  ]
+}

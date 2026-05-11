@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "inundation"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python package for calculating Yolo Bypass inundation duration from water flow and stage height data"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -53,10 +53,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ferg-dwr/inundation"
-Repository = "https://github.com/ferg-dwr/inundation.git"
+Homepage = "https://github.com/YOUR-USERNAME/inundation"
+Repository = "https://github.com/YOUR-USERNAME/inundation.git"
 Documentation = "https://python-inundation.readthedocs.io"
-"Bug Tracker" = "https://github.com/ferg-dwr/inundation/issues"
+"Bug Tracker" = "https://github.com/YOUR-USERNAME/inundation/issues"
 "Original R Package" = "https://github.com/goertler/inundation"
 
 [tool.setuptools]
@@ -131,7 +131,6 @@ strict_optional = true
 [[tool.mypy.overrides]]
 module = [
     "pandas",
-    "pandas.*",
     "requests",
     "appdirs",
 ]
