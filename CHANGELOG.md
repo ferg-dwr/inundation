@@ -69,6 +69,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type hints throughout
 - Full documentation and examples
 - Support for Python 3.10+
+- Community and governance files (#3)
+  - `CONTRIBUTING.md` - Comprehensive contribution guidelines with fork-and-PR workflow
+  - `CODE_OF_CONDUCT.md` - Contributor Covenant v2.1
+  - `SECURITY.md` - Vulnerability reporting via GitHub Security Advisory
+  - `MAINTAINERS.md` - Maintainer info and governance structure
+  - `.github/CODEOWNERS` - Automatic review request configuration
 
 [Unreleased]: https://github.com/ferg-dwr/inundation/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/ferg-dwr/inundation/releases/tag/v0.1.0
