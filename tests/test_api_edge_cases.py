@@ -38,7 +38,8 @@ def load_json_fixture(relative_path: str) -> dict:
     """Load a JSON fixture file and return parsed dict."""
     fixture_path = FIXTURES_DIR / relative_path
     with fixture_path.open() as f:
-        return json.load(f)
+        data: dict = json.load(f)
+        return data
 
 
 class TestFreRequestParameterConstruction:
